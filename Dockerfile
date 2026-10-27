@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1
 
 # renovate: datasource=github-releases packageName=librenms/librenms versioning=semver
-ARG LIBRENMS_VERSION="26.1.1"
-ARG ALPINE_VERSION="3.22"
-ARG SYSLOGNG_VERSION="4.8.3-r1"
+ARG LIBRENMS_VERSION="26.10.2"
+ARG ALPINE_VERSION="3.24"
+ARG SYSLOGNG_VERSION="4.11.0-r0"
 
-FROM crazymax/yasu:latest AS yasu
+FROM tianon/gosu:latest AS gosu
+
 FROM crazymax/alpine-s6:${ALPINE_VERSION}-2.2.0.3
-COPY --from=yasu / /
+COPY --from=gosu /gosu /usr/local/bin/
 RUN apk --update --no-cache add \
     busybox-extras \
     acl \
@@ -35,36 +36,36 @@ RUN apk --update --no-cache add \
     openssl \
     openssh-client \
     perl \
-    php83 \
-    php83-cli \
-    php83-ctype \
-    php83-curl \
-    php83-dom \
-    php83-fileinfo \
-    php83-fpm \
-    php83-gd \
-    php83-gmp \
-    php83-iconv \
-    php83-json \
-    php83-ldap \
-    php83-mbstring \
-    php83-mysqlnd \
-    php83-opcache \
-    php83-openssl \
-    php83-pdo \
-    php83-pdo_mysql \
-    php83-pecl-memcached \
-    php83-pear \
-    php83-phar \
-    php83-posix \
-    php83-session \
-    php83-simplexml \
-    php83-snmp \
-    php83-sockets \
-    php83-tokenizer \
-    php83-xml \
-    php83-xmlwriter \
-    php83-zip \
+    php84 \
+    php84-cli \
+    php84-ctype \
+    php84-curl \
+    php84-dom \
+    php84-fileinfo \
+    php84-fpm \
+    php84-gd \
+    php84-gmp \
+    php84-iconv \
+    php84-json \
+    php84-ldap \
+    php84-mbstring \
+    php84-mysqlnd \
+    php84-opcache \
+    php84-openssl \
+    php84-pdo \
+    php84-pdo_mysql \
+    php84-pecl-memcached \
+    php84-pear \
+    php84-phar \
+    php84-posix \
+    php84-session \
+    php84-simplexml \
+    php84-snmp \
+    php84-sockets \
+    php84-tokenizer \
+    php84-xml \
+    php84-xmlwriter \
+    php84-zip \
     python3 \
     py3-pip \
     rrdtool \
@@ -81,6 +82,7 @@ RUN apk --update --no-cache add \
     mariadb-dev \
     musl-dev \
     python3-dev \
+  && ln -sf /usr/bin/php84 /usr/bin/php \
   && pip3 install --upgrade --break-system-packages pip \
   && pip3 install python-memcached mysqlclient --upgrade --break-system-packages \
   && curl -sSL https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
@@ -110,7 +112,7 @@ ENV S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
 
 RUN addgroup -g ${PGID} librenms \
   && adduser -D -h /home/librenms -u ${PUID} -G librenms -s /bin/sh -D librenms \
-  && curl -sSLk -q https://raw.githubusercontent.com/librenms/librenms-agent/master/snmp/distro -o /usr/bin/distro \
+  && curl -sSL -q https://raw.githubusercontent.com/librenms/librenms-agent/master/snmp/distro -o /usr/bin/distro \
   && chmod +x /usr/bin/distro
 
 WORKDIR ${LIBRENMS_PATH}
